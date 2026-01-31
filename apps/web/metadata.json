@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Edu-Interativo",
+  "description": "Uma plataforma de cursos de tecnologia que utiliza o Gemini para analisar vídeos e gerar desafios interativos (quizzes e exercícios de código) em tempo real, com lógica de dificuldade adaptativa e barra de XP.",
+  "requestFramePermissions": []
+}
