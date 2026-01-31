@@ -1,49 +1,108 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-apps/*/node_modules
+# ======================
+# Dependencies
+# ======================
+node_modules/
 /.pnp
 .pnp.js
 
-# testing
-/coverage
-
-# production
+# ======================
+# Build outputs
+# ======================
 /build
 /dist
 apps/*/dist
+*.tsbuildinfo
 
-# misc
-.DS_Store
-*.pem
+# ======================
+# Testing
+# ======================
+/coverage
+apps/*/coverage
+.nyc_output
+*.lcov
+.pytest_cache/
+htmlcov/
+
+# ======================
+# Environment
+# ======================
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
+!.env.example
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
+# ======================
 # Python
-apps/api/venv/
-apps/api/__pycache__/
-apps/api/**/__pycache__/
+# ======================
+venv/
+.venv/
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# IDEs
+# ======================
+# Ruff / Linting
+# ======================
+.ruff_cache/
+.mypy_cache/
+
+# ======================
+# IDEs and Editors
+# ======================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
 
-# Backup files
+# ======================
+# OS Files
+# ======================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ======================
+# Debug logs
+# ======================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ======================
+# Misc
+# ======================
+*.pem
 *.old
+*.bak
+*.backup
 gen-lang-client-*.json
+.cache/
+*.log
+
+# ======================
+# Temporary files
+# ======================
+tmp/
+temp/
+*.tmp
+*.temp

@@ -1,49 +1,99 @@
 """
 Supabase Client Configuration
 
-This module provides a configured Supabase client for the application.
+This module provides a configured Supabase client singleton for the application.
+Uses a proper singleton pattern to avoid global mutable state issues.
 """
 
 import os
-from supabase import create_client, Client
+from functools import lru_cache
 from typing import Optional
 
-# Global Supabase client instance
-_supabase_client: Optional[Client] = None
+from supabase import Client, create_client
 
 
+class SupabaseClientError(Exception):
+    """Raised when Supabase client cannot be initialized."""
+
+    pass
+
+
+@lru_cache(maxsize=1)
 def get_supabase_client() -> Client:
     """
-    Get or create a Supabase client instance.
-    
+    Get or create a Supabase client instance (singleton).
+
+    Uses lru_cache to ensure only one instance is created.
+
     Returns:
         Client: Configured Supabase client
-        
+
     Raises:
-        ValueError: If required environment variables are not set
+        SupabaseClientError: If required environment variables are not set
     """
-    global _supabase_client
-    
-    if _supabase_client is None:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")  # Use service role for backend
-        
-        if not url or not key:
-            raise ValueError(
-                "Missing Supabase credentials. "
-                "Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables."
-            )
-        
-        _supabase_client = create_client(url, key)
-    
-    return _supabase_client
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+    if not url:
+        raise SupabaseClientError(
+            "SUPABASE_URL environment variable is not set. "
+            "Please configure it in your .env file."
+        )
+
+    if not key:
+        raise SupabaseClientError(
+            "SUPABASE_SERVICE_ROLE_KEY environment variable is not set. "
+            "Please configure it in your .env file."
+        )
+
+    return create_client(url, key)
 
 
-# Convenience function to access the client
-supabase: Client = None
+def init_supabase() -> Client:
+    """
+    Initialize the Supabase client.
 
-def init_supabase():
-    """Initialize the global Supabase client"""
-    global supabase
-    supabase = get_supabase_client()
-    return supabase
+    This is called during application startup to ensure
+    the client is properly configured.
+
+    Returns:
+        Client: The initialized Supabase client
+
+    Raises:
+        SupabaseClientError: If initialization fails
+    """
+    return get_supabase_client()
+
+
+def get_client() -> Optional[Client]:
+    """
+    Safely get the Supabase client, returning None if not configured.
+
+    Use this when you want to gracefully handle missing configuration.
+
+    Returns:
+        Optional[Client]: The Supabase client or None if not configured
+    """
+    try:
+        return get_supabase_client()
+    except SupabaseClientError:
+        return None
+
+
+# Convenience alias for dependency injection
+def get_db() -> Client:
+    """
+    Dependency injection helper for FastAPI routes.
+
+    Usage:
+        @router.get("/items")
+        async def get_items(db: Client = Depends(get_db)):
+            ...
+
+    Returns:
+        Client: The Supabase client
+
+    Raises:
+        SupabaseClientError: If client is not configured
+    """
+    return get_supabase_client()
