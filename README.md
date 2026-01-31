@@ -1,207 +1,267 @@
-# Your-Edu-Interativo 🚀
+# YouEdu
 
-An interactive educational platform powered by AI that transforms videos into gamified learning experiences.
+Plataforma de aprendizado inteligente com IA que transforma vídeos em experiências educacionais gamificadas.
 
-## 🏗️ Monorepo Structure
+## Estrutura do Monorepo
 
 ```
-your-edu-interativo/
+youedu/
 ├── apps/
-│   ├── web/          # React + Vite frontend
-│   └── api/          # FastAPI backend
-├── scripts/
-│   └── dev.sh        # Development startup script
-└── package.json      # Root orchestration
+│   ├── web/          # Frontend React + Vite + TypeScript
+│   └── api/          # Backend FastAPI + Python
+└── package.json      # Orquestração do monorepo
 ```
 
-## ✨ Features
+## Funcionalidades
 
-- 📹 **Video Analysis**: Upload local videos or use YouTube URLs
-- 🎯 **AI-Generated Challenges**: Gemini AI creates educational quizzes and code exercises
-- 🎮 **Gamification**: XP system, levels, and progress tracking
-- 🔒 **Secure**: API keys never exposed to frontend
-- ⚡ **Modern Stack**: React 19, FastAPI, TypeScript, Python 3.11+
+- **Análise de Vídeos**: Upload de vídeos locais ou URLs do YouTube
+- **Desafios com IA**: Gemini AI gera quizzes e exercícios de código
+- **Gamificação**: Sistema de XP, níveis, conquistas e leaderboard
+- **Trilhas de Aprendizado**: Organize vídeos em trilhas personalizadas
+- **Certificados**: Geração automática de certificados ao completar trilhas
+- **Transcrição**: Transcrição automática de vídeos com timestamps
+- **Autenticação**: Integração com Supabase Auth
+- **Banco de Dados**: Supabase para persistência de dados
 
-## 🛠️ Prerequisites
+## Tech Stack
 
-- **Node.js** 18+ and npm
-- **Python** 3.11+ and pip
-- **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/app/apikey)
+### Frontend
+- React 19
+- TypeScript
+- Vite
+- Supabase Client
+- Vitest para testes
 
-## 🚀 Quick Start
+### Backend
+- FastAPI
+- Python 3.11+
+- Gemini AI
+- Supabase
+- Pytest para testes
 
-### 1. Clone and Install
+## Pré-requisitos
+
+- **Node.js** 18+
+- **Python** 3.11+
+- **Gemini API Key** - [Google AI Studio](https://aistudio.google.com/app/apikey)
+- **Supabase** - Projeto configurado com credenciais
+
+## Instalacao
+
+### 1. Instalar Dependencias
 
 ```bash
-cd your-edu-interativo
-
-# Install all dependencies (root, web, and api)
+# Instalar dependências do monorepo
 npm install
+
+# Instalar dependências do frontend
 cd apps/web && npm install && cd ../..
+
+# Instalar dependências do backend
+npm run install:api
 ```
 
-### 2. Configure Environment
+### 2. Configurar Variáveis de Ambiente
 
-Create `.env` file in the root directory:
+Crie um arquivo `.env` na raiz do projeto:
 
 ```bash
-# .env
-GEMINI_API_KEY=your_gemini_api_key_here
-API_PORT=8000
-CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+# Gemini AI
+GEMINI_API_KEY=sua_chave_gemini
+
+# Supabase
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=sua_anon_key
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
+
+# Configuração
+NODE_ENV=development
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-### 3. Setup Python Environment
+### 3. Configurar Banco de Dados
 
 ```bash
 cd apps/api
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cd ../..
+
+# Criar schema (escolha opção 2 para gerar SQL)
+python -m database.setup_schema
+
+# Popular achievements
+python -m database.seeds
 ```
 
-### 4. Run Development Servers
+### 4. Executar em Desenvolvimento
 
-**Option A - Automated (Linux/Mac):**
 ```bash
-./scripts/dev.sh
-```
-
-**Option B - Manual:**
-```bash
-# Terminal 1 - Backend
-cd apps/api
-source venv/bin/activate
-python -m uvicorn main:app --reload --port 8000
-
-# Terminal 2 - Frontend
-cd apps/web
+# Executa frontend e backend simultaneamente
 npm run dev
 ```
 
-### 5. Open Your Browser
+Ou separadamente:
+
+```bash
+# Backend (terminal 1)
+npm run dev:api
+
+# Frontend (terminal 2)
+npm run dev:web
+```
+
+### 5. Acessar
 
 - **Frontend**: http://localhost:5173
 - **API Docs**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/api/health
 
-## 📁 Project Structure
+## Estrutura do Projeto
 
 ### Frontend (`apps/web/`)
+
 ```
 web/
-├── components/
-│   ├── ChallengeOverlay.tsx  # Quiz/Code challenge UI
-│   └── XPBar.tsx             # Gamification progress bar
-├── services/
-│   ├── apiClient.ts          # HTTP client for backend
-│   ├── geminiService.ts      # Video analysis (calls backend)
-│   └── youtubeService.ts     # YouTube URL parsing
-├── views/
-│   └── Home.tsx              # Landing page
-└── App.tsx                   # Main application
+├── components/        # Componentes React reutilizáveis
+├── contexts/          # Context providers
+├── hooks/             # Custom hooks
+├── lib/               # Configurações (Supabase client)
+├── services/          # Serviços de API
+├── views/             # Páginas/Views
+├── tests/             # Testes
+├── App.tsx            # Componente principal
+└── index.tsx          # Entry point
 ```
 
 ### Backend (`apps/api/`)
+
 ```
 api/
-├── routers/
-│   ├── challenges.py         # Challenge generation endpoints
-│   └── youtube.py            # YouTube parsing endpoints
-├── services/
-│   └── gemini_service.py     # Gemini AI integration
-├── schemas/
-│   ├── challenges.py         # Pydantic models for challenges
-│   └── youtube.py            # Pydantic models for YouTube
-└── main.py                   # FastAPI application
+├── routers/           # Endpoints da API
+│   ├── auth.py        # Autenticação
+│   ├── youtube.py     # Parsing de URLs do YouTube
+│   ├── challenges.py  # Geração de desafios
+│   ├── students.py    # Gerenciamento de estudantes
+│   ├── trails.py      # Trilhas de aprendizado
+│   ├── assessment.py  # Avaliações
+│   ├── certificates.py # Certificados
+│   ├── gamification.py # Sistema de gamificação
+│   ├── transcription.py # Transcrição de vídeos
+│   └── models.py      # Modelos de IA disponíveis
+├── schemas/           # Modelos Pydantic
+├── services/          # Lógica de negócios
+├── database/          # Scripts e cliente do banco
+├── tests/             # Testes
+└── main.py            # Aplicação FastAPI
 ```
 
-## 🔌 API Endpoints
+## Endpoints da API
 
-### Health
-- `GET /api/health` - Server health check
+### Autenticacao
+- `POST /api/auth/register` - Registrar usuário
+- `POST /api/auth/login` - Login
 
 ### YouTube
-- `POST /api/youtube/parse` - Extract video/playlist ID from URL
-- `GET /api/youtube/oembed` - Fetch video metadata
+- `POST /api/youtube/parse` - Extrair ID do vídeo/playlist
+- `GET /api/youtube/oembed` - Buscar metadados do vídeo
 
-### Challenges
-- `POST /api/challenges/generate` - Generate challenges from uploaded video
+### Desafios
+- `POST /api/challenges/generate` - Gerar desafios com IA
 
-## 🎮 How It Works
+### Estudantes
+- `GET /api/students/me` - Perfil do estudante
+- `GET /api/students/progress` - Progresso do estudante
 
-1. **Upload Video**: Choose a local video file or paste a YouTube URL
-2. **AI Analysis**: Gemini AI analyzes the content (backend-side)
-3. **Challenges Generated**: Quiz questions and code exercises are created
-4. **Interactive Learning**: Challenges appear at specific timestamps during playback
-5. **Earn XP**: Correct answers grant experience points and level-ups
+### Trilhas
+- `GET /api/trails` - Listar trilhas
+- `POST /api/trails` - Criar trilha
 
-## 🔐 Security
+### Avaliacoes
+- `POST /api/assessment/submit` - Submeter avaliação
 
-- ✅ Gemini API key stored server-side only (`.env`)
-- ✅ No API calls from browser to external services
-- ✅ CORS configured for localhost development
-- ✅ Input validation with Pydantic schemas
+### Certificados
+- `GET /api/certificates` - Listar certificados
+- `POST /api/certificates/generate` - Gerar certificado
 
-## 🧪 Testing
+### Gamificacao
+- `GET /api/gamification/leaderboard` - Ranking
+- `GET /api/gamification/achievements` - Conquistas
+
+### Transcricao
+- `POST /api/transcription/transcribe` - Transcrever vídeo
+
+## Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia frontend e backend
+npm run dev:web      # Apenas frontend
+npm run dev:api      # Apenas backend
+
+# Build
+npm run build        # Build do frontend
+
+# Testes
+npm run test         # Testes do frontend
+npm run test:api     # Testes do backend
+
+# Qualidade de código
+npm run lint         # ESLint
+npm run lint:fix     # ESLint com fix
+npm run format       # Prettier
+```
+
+## Testes
 
 ### Backend
+
 ```bash
 cd apps/api
 source venv/bin/activate
-curl http://localhost:8000/api/health
+pytest
 ```
 
 ### Frontend
+
 ```bash
 cd apps/web
-npm run build  # Test production build
-npm run preview
+npm run test
 ```
 
-## 📦 Build for Production
+## Seguranca
+
+- API keys armazenadas apenas no servidor (`.env`)
+- Validação de entrada com Pydantic schemas
+- CORS configurado por ambiente
+- Autenticação via Supabase Auth
+- Row Level Security (RLS) no banco de dados
+
+## Troubleshooting
+
+### Porta em uso
 
 ```bash
-# Build frontend
-cd apps/web
-npm run build
-
-# Backend runs with uvicorn (no build needed)
-cd ../api
-source venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-## 🐛 Troubleshooting
-
-### Port Already in Use
-```bash
-# Kill process on port 8000 (backend)
+# Matar processo na porta 8000
 lsof -ti:8000 | xargs kill -9
 
-# Kill process on port 5173 (frontend)
+# Matar processo na porta 5173
 lsof -ti:5173 | xargs kill -9
 ```
 
-### Python Module Not Found
+### Módulo Python não encontrado
+
 ```bash
 cd apps/api
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### CORS Errors
-Ensure `.env` has correct CORS_ORIGINS and backend is running on port 8000.
+### Erros de CORS
 
-## 📄 License
+Verifique se `CORS_ORIGINS` no `.env` inclui a URL do frontend.
+
+### Problemas com Supabase
+
+Consulte a documentação em `apps/api/database/README.md`.
+
+## Licenca
 
 MIT
-
-## 🤝 Contributing
-
-This is an educational project. Feel free to fork and experiment!
-
----
-
-**Powered by Gemini 2.5 Flash & Next-Gen UI** 🌟
