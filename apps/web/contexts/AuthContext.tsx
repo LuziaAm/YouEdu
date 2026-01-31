@@ -4,12 +4,13 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
+    isConfigured: boolean;
     signInWithGoogle: () => Promise<{ error: AuthError | null }>;
     signOut: () => Promise<void>;
 }
@@ -23,9 +24,15 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(isSupabaseConfigured);
 
     useEffect(() => {
+        // Skip auth initialization if Supabase is not configured
+        if (!isSupabaseConfigured) {
+            setLoading(false);
+            return;
+        }
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
@@ -36,6 +43,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (session?.user) {
                 syncUserWithBackend(session.user);
             }
+        }).catch((error) => {
+            console.error('Failed to get session:', error);
+            setLoading(false);
         });
 
         // Listen for auth changes
@@ -75,6 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const signInWithGoogle = async () => {
+        if (!isSupabaseConfigured) {
+            return { error: { message: 'Authentication not configured' } as AuthError };
+        }
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -89,13 +102,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const signOut = async () => {
+        if (!isSupabaseConfigured) {
+            return;
+        }
         await supabase.auth.signOut();
         setUser(null);
         setSession(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, isConfigured: isSupabaseConfigured, signInWithGoogle, signOut }}>
             {children}
         </AuthContext.Provider>
     );
