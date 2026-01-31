@@ -102,7 +102,7 @@ const AppContent: React.FC = () => {
     const fetchStudentData = async () => {
       if (user?.email) {
         try {
-          const response = await fetch(`http://localhost:8000/api/auth/me/${encodeURIComponent(user.email)}`);
+          const response = await fetch(`/api/auth/me/${encodeURIComponent(user.email)}`);
           if (response.ok) {
             const data = await response.json();
             setDbStudent(data);

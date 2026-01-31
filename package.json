@@ -1,21 +1,29 @@
 {
-    "name": "your-edu-interativo",
+    "name": "youedu",
     "private": true,
     "version": "2.0.0",
     "type": "module",
-    "description": "YouEdu - Intelligent Learning Platform with AI-powered assessments",
+    "description": "YouEdu - Intelligent Learning Platform with AI-powered assessments and gamification",
     "workspaces": [
         "apps/*"
     ],
     "scripts": {
         "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
-        "dev:web": "cd apps/web && npm run dev",
+        "dev:web": "npm -w @youedu/web run dev",
         "dev:api": "cd apps/api && python -m uvicorn main:app --reload --port 8000",
-        "install:all": "npm install && cd apps/web && npm install && cd ../api && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
-        "build:web": "cd apps/web && npm run build",
-        "preview:web": "cd apps/web && npm run preview"
+        "build": "npm -w @youedu/web run build",
+        "preview": "npm -w @youedu/web run preview",
+        "lint": "npm -w @youedu/web run lint",
+        "lint:fix": "npm -w @youedu/web run lint:fix",
+        "format": "npm -w @youedu/web run format",
+        "test": "npm -w @youedu/web run test",
+        "test:api": "cd apps/api && pytest",
+        "install:api": "cd apps/api && python -m venv venv && . venv/bin/activate && pip install -r requirements.txt"
     },
     "devDependencies": {
         "concurrently": "^9.1.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
     }
 }
