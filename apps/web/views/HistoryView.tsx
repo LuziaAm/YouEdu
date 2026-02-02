@@ -19,7 +19,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onBack }) => {
     const { user } = useAuth();
     const [sessions, setSessions] = useState<VideoSession[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, _setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchHistory = async () => {
