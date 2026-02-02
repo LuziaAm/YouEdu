@@ -7,6 +7,7 @@ import { defineConfig } from 'vite';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  envDir: '../../',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
