@@ -52,8 +52,6 @@ export function useVideoCheckpoints(
 
     // Track if we've checked this second to avoid re-triggering
     const lastCheckedSecond = useRef<number>(-1);
-    // Callback ref for pause function (to be set by parent)
-    const _pauseVideoRef = useRef<(() => void) | null>(null);
 
     // Check for checkpoint triggers based on current time
     useEffect(() => {

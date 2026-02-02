@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { transcribeVideo, generateQuiz, getYouTubeCaptions, captionsToTranscript, TranscriptResponse, QuizResponse } from './services/transcriptionService';
 import studentProgressService, { Student } from './services/studentProgressService';
 import { parseYouTubeUrl } from './services/youtubeService';
