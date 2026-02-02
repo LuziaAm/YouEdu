@@ -64,14 +64,25 @@ export const transcribeVideo = async (file: File): Promise<TranscriptResponse> =
 
 /**
  * Generate quiz from transcript using AI
+ *
+ * The number of questions is proportional to video duration:
+ * - Minimum: 2 questions
+ * - Maximum: 10 questions
+ * - Formula: ~1 question per 3 minutes of video
+ *
+ * @param transcript - The video transcript text
+ * @param durationSeconds - Video duration in seconds (default: 300 = 5 min)
  */
-export const generateQuiz = async (transcript: string): Promise<QuizResponse> => {
+export const generateQuiz = async (transcript: string, durationSeconds: number = 300): Promise<QuizResponse> => {
     const response = await fetch(`${API_BASE_URL}/generate-quiz`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transcript }),
+        body: JSON.stringify({
+            transcript,
+            duration_seconds: Math.round(durationSeconds)
+        }),
     });
 
     if (!response.ok) {

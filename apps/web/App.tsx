@@ -219,8 +219,9 @@ const AppContent: React.FC = () => {
         setTranscript(transcriptResult);
         // Note: isVideoPlaying is now synced automatically via useYouTubePlayer hook
 
-        // Generate Quiz from real transcript
-        const quizResult = await generateQuiz(transcriptResult.transcript);
+        // Generate Quiz from real transcript (proportional to video duration)
+        const duration = transcriptResult.duration || 300;  // Use transcript duration or default 5 min
+        const quizResult = await generateQuiz(transcriptResult.transcript, duration);
         setQuizData(quizResult);
 
       } else {
@@ -251,8 +252,9 @@ const AppContent: React.FC = () => {
         const transcriptResult = await transcribeVideo(file);
         setTranscript(transcriptResult);
 
-        // 2. Generate Quiz (in background or wait)
-        const quizResult = await generateQuiz(transcriptResult.transcript);
+        // 2. Generate Quiz (proportional to video duration)
+        const duration = transcriptResult.duration || 300;  // Use transcript duration or default 5 min
+        const quizResult = await generateQuiz(transcriptResult.transcript, duration);
         setQuizData(quizResult);
 
       } catch (error) {
@@ -365,7 +367,9 @@ const AppContent: React.FC = () => {
       getYouTubeCaptions(video.video_id)
         .then(captions => {
           setTranscript(captionsToTranscript(captions));
-          return generateQuiz(captions.transcript);
+          // Generate quiz proportional to video duration
+          const duration = captions.duration || 300;  // Use captions duration or default 5 min
+          return generateQuiz(captions.transcript, duration);
         })
         .then(setQuizData)
         .catch(err => console.warn('Captions not available:', err));
