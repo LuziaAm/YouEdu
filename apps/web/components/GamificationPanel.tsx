@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { gamificationService, GamificationData } from '../services/gamificationService';
+import { youtubeRecommendationsService, VideoRecommendation } from '../services/youtubeRecommendationsService';
 
 interface GamificationPanelProps {
     refreshTrigger?: number; // Increment to force refresh
+    onVideoSelect?: (url: string) => void; // Callback when a video is selected
 }
 
-const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 0 }) => {
+const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 0, onVideoSelect }) => {
     const [data, setData] = useState<GamificationData | null>(null);
+    const [recommendations, setRecommendations] = useState<VideoRecommendation[]>([]);
     const [loading, setLoading] = useState(true);
     const [_error, setError] = useState<string | null>(null);
 
@@ -14,8 +17,12 @@ const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 
         const loadData = async () => {
             try {
                 setLoading(true);
-                const gamificationData = await gamificationService.getGamificationData();
+                const [gamificationData, videoRecommendations] = await Promise.all([
+                    gamificationService.getGamificationData(),
+                    youtubeRecommendationsService.getRecommendations()
+                ]);
                 setData(gamificationData);
+                setRecommendations(videoRecommendations);
                 setError(null);
             } catch (err) {
                 setError('Erro ao carregar dados');
@@ -27,6 +34,14 @@ const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 
 
         loadData();
     }, [refreshTrigger]);
+
+    const handleVideoClick = (url: string) => {
+        if (onVideoSelect) {
+            onVideoSelect(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    };
 
     // Loading skeleton
     if (loading && !data) {
@@ -40,7 +55,6 @@ const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 
     }
 
     const session = data?.session || { streak_days: 0, questions_today: 0, xp_today: 0 };
-    const nextAchievement = data?.next_achievement;
     const missions = data?.missions || [];
 
     return (
@@ -77,47 +91,65 @@ const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 
                 </div>
             </div>
 
-            {/* Card 2: Next Achievement */}
-            <div className="glass p-5 rounded-2xl border border-slate-800/50 md:col-span-2 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5" />
+            {/* Card 2: Video Recommendations */}
+            <div className="glass p-5 rounded-2xl border border-slate-800/50 md:col-span-2 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/5 to-orange-600/5" />
 
-                {nextAchievement && (
-                    <>
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                    {nextAchievement.completed ? 'Conquista Completa!' : 'Próxima Conquista'}
-                                </h4>
-                                <h3 className="text-xl font-bold text-white">{nextAchievement.name}</h3>
-                                <p className="text-sm text-slate-500 mt-1">{nextAchievement.description}</p>
-                            </div>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-lg ${nextAchievement.completed
-                                    ? 'bg-emerald-600 border-emerald-500'
-                                    : 'bg-slate-800 border-slate-700'
-                                }`}>
-                                <span className="text-2xl">{nextAchievement.icon}</span>
-                            </div>
-                        </div>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-4">
+                        <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                        </svg>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            Recomendados para Você
+                        </h4>
+                    </div>
 
-                        <div className="relative z-10">
-                            <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
-                                <span>Progresso</span>
-                                <span>{nextAchievement.current} / {nextAchievement.target}</span>
-                            </div>
-                            <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                                <div
-                                    className={`h-full shadow-[0_0_10px_rgba(59,130,246,0.5)] relative transition-all duration-500 ${nextAchievement.completed
-                                            ? 'bg-gradient-to-r from-emerald-500 to-green-400'
-                                            : 'bg-gradient-to-r from-blue-500 to-purple-500'
-                                        }`}
-                                    style={{ width: `${Math.min((nextAchievement.current / nextAchievement.target) * 100, 100)}%` }}
-                                >
-                                    <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {recommendations.map((video) => (
+                            <div
+                                key={video.video_id}
+                                onClick={() => handleVideoClick(video.url)}
+                                className="group cursor-pointer bg-slate-900/50 rounded-xl border border-slate-800 hover:border-red-500/50 transition-all duration-300 overflow-hidden"
+                            >
+                                <div className="relative aspect-video overflow-hidden">
+                                    <img
+                                        src={video.thumbnail}
+                                        alt={video.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+                                            <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded">
+                                        {video.views}
+                                    </div>
+                                </div>
+                                <div className="p-2">
+                                    <h5 className="text-xs font-semibold text-slate-200 line-clamp-2 group-hover:text-red-400 transition-colors">
+                                        {video.title}
+                                    </h5>
+                                    <p className="text-[10px] text-slate-500 mt-1 truncate">
+                                        {video.channel}
+                                    </p>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+
+                    {recommendations.length === 0 && (
+                        <div className="text-center py-8 text-slate-500">
+                            <svg className="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm">Carregando recomendações...</p>
                         </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Card 3: Missions */}
