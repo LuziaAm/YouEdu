@@ -646,7 +646,52 @@ const AppContent: React.FC = () => {
                   )}
 
                   {/* Gamification Panel below video */}
-                  <GamificationPanel />
+                  <GamificationPanel onVideoSelect={(url) => {
+                    setYtInput(url);
+                    // Auto-load the video by setting the URL and triggering the load
+                    setTimeout(() => {
+                      const loadVideo = async () => {
+                        setIsProcessing(true);
+                        setTranscript(null);
+                        setQuizData(null);
+                        setShowFinalQuiz(false);
+                        setSessionQuizCompleted(false);
+
+                        try {
+                          const result = await parseYouTubeUrl(url);
+                          if (result.videoId) {
+                            setVideoUrl(null);
+                            if (result.provider === 'vimeo') {
+                              setVimeoId(result.videoId);
+                              setYoutubeId(null);
+                            } else {
+                              setYoutubeId(result.videoId);
+                              setVimeoId(null);
+                            }
+
+                            if (result.provider === 'youtube' && result.videoId) {
+                              try {
+                                const captions = await getYouTubeCaptions(result.videoId);
+                                const transcriptResult = captionsToTranscript(captions);
+                                setTranscript(transcriptResult);
+
+                                const duration = transcriptResult.duration || 300;
+                                const quizResult = await generateQuiz(transcriptResult.transcript, duration);
+                                setQuizData(quizResult);
+                              } catch (captionsError) {
+                                console.error('Legendas não disponíveis:', captionsError);
+                              }
+                            }
+                          }
+                        } catch (error) {
+                          console.error("Erro Video URL:", error);
+                        } finally {
+                          setIsProcessing(false);
+                        }
+                      };
+                      loadVideo();
+                    }, 100);
+                  }} />
                 </div>
               )}
             </div>
