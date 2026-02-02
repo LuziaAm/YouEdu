@@ -79,24 +79,36 @@ async def get_youtube_captions_by_id(video_id: str):
     return result
 
 
+class QuizRequest(BaseModel):
+    transcript: str
+    duration_seconds: Optional[int] = 300  # Default 5 minutes
+
+
 @router.post("/generate-quiz")
-async def generate_quiz_endpoint(transcript: dict):
+async def generate_quiz_endpoint(request: QuizRequest):
     """
     Generate quiz questions from transcript using AI.
-    
+
+    The number of questions is proportional to video duration:
+    - Minimum: 2 questions
+    - Maximum: 10 questions
+    - Formula: ~1 question per 3 minutes of video
+
     Request body:
     {
-        "transcript": "full transcript text..."
+        "transcript": "full transcript text...",
+        "duration_seconds": 600  // optional, defaults to 300 (5 min)
     }
     """
     try:
-        transcript_text = transcript.get("transcript", "")
-        
-        if not transcript_text:
+        if not request.transcript:
             raise HTTPException(status_code=400, detail="Transcript text is required")
-        
-        quiz_data = generate_quiz_from_transcript(transcript_text)
-        
+
+        quiz_data = generate_quiz_from_transcript(
+            request.transcript,
+            request.duration_seconds
+        )
+
         return quiz_data
     except HTTPException:
         raise

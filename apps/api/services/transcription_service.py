@@ -408,21 +408,55 @@ async def transcribe_video(video_data: bytes, mime_type: str) -> Dict[str, Any]:
 # QUIZ GENERATION (using Gemini)
 # ============================================================================
 
-def generate_quiz_from_transcript(transcript_text: str) -> Dict[str, Any]:
-    """Generate quiz questions based on transcript using Gemini."""
+def calculate_quiz_questions(duration_seconds: int) -> int:
+    """
+    Calculate the number of quiz questions based on video duration.
+
+    Formula: 1 question per 3 minutes, minimum 2, maximum 10.
+    - Videos < 3 min: 2 questions
+    - Videos 3-6 min: 2 questions
+    - Videos 6-9 min: 3 questions
+    - Videos 9-12 min: 4 questions
+    - ... and so on
+    - Videos >= 27 min: 10 questions (max)
+    """
+    duration_minutes = duration_seconds / 60
+    num_questions = max(2, min(10, int(duration_minutes / 3) + 1))
+    return num_questions
+
+
+def generate_quiz_from_transcript(transcript_text: str, duration_seconds: int = 300) -> Dict[str, Any]:
+    """
+    Generate quiz questions based on transcript using Gemini.
+
+    The number of questions is proportional to video duration:
+    - Minimum: 2 questions
+    - Maximum: 10 questions
+    - Formula: ~1 question per 3 minutes of video
+    """
     if not GEMINI_API_KEY:
         raise Exception("GEMINI_API_KEY not set for quiz generation")
 
+    # Calculate proportional number of questions
+    num_questions = calculate_quiz_questions(duration_seconds)
+    duration_minutes = duration_seconds / 60
+
+    print(f"📝 Generating quiz: {num_questions} questions for {duration_minutes:.1f} min video")
+
     client = genai.Client(api_key=GEMINI_API_KEY)
-    
+
+    # Decide if coding exercise should be included (only for longer videos)
+    include_coding = duration_seconds >= 600  # 10+ minutes
+    coding_instruction = "e 1 exercício de código (se o conteúdo envolver programação)" if include_coding else ""
+
     prompt = f"""
     Com base no seguinte texto transcrito de uma aula, crie um quiz educativo.
-    
+
     TEXTO:
     "{transcript_text[:10000]}"
-    
+
     TAREFA:
-    Gere 3-4 perguntas de múltipla escolha e 1 exercício de código (se aplicável).
+    Gere EXATAMENTE {num_questions} perguntas de múltipla escolha{coding_instruction}.
     
     FORMATO JSON:
     {{
