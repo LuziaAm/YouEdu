@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { transcribeVideo, generateQuiz, getYouTubeCaptions, captionsToTranscript, TranscriptResponse, QuizResponse } from './services/transcriptionService';
 import studentProgressService, { Student } from './services/studentProgressService';
 import { parseYouTubeUrl } from './services/youtubeService';
-import { Challenge, StudentState } from './types';
-import XPBar from './components/XPBar';
+import { StudentState } from './types';
 import TranscriptPanel from './components/TranscriptPanel';
 import FinalQuiz from './components/FinalQuiz';
 import GamificationPanel from './components/GamificationPanel';
@@ -18,7 +17,6 @@ import CertificatesView from './views/CertificatesView';
 import StatsView from './views/StatsView';
 import CheckpointModal from './components/CheckpointModal';
 import { TrailVideo } from './services/trailsService';
-import { CheckpointQuestion } from './services/assessmentService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useYouTubePlayer } from './hooks/useYouTubePlayer';
 import { useVideoCheckpoints } from './hooks/useVideoCheckpoints';
@@ -28,7 +26,7 @@ type ViewMode = 'home' | 'student' | 'trails' | 'trail-detail' | 'verification' 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [view, setView] = useState<ViewMode>('home');
-  const [pendingDestination, setPendingDestination] = useState<'student' | 'trails' | 'verification' | null>(null);
+  const [pendingDestination, setPendingDestination] = useState<'student' | 'trails' | 'verification' | undefined>(undefined);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [youtubeId, setYoutubeId] = useState<string | null>(null);
   const [vimeoId, setVimeoId] = useState<string | null>(null);
@@ -41,7 +39,7 @@ const AppContent: React.FC = () => {
   const [quizData, setQuizData] = useState<QuizResponse | null>(null);
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [configError, setConfigError] = useState<{ code: number; message: string } | null>(null);
+  const [_configError, setConfigError] = useState<{ code: number; message: string } | null>(null);
   const [student, setStudent] = useState<StudentState>({ level: 1, xp: 0, completedChallenges: [] });
   const [dbStudent, setDbStudent] = useState<Student | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -62,13 +60,10 @@ const AppContent: React.FC = () => {
   const {
     checkpoints,
     currentCheckpoint,
-    completedCheckpoints,
-    scoreState: checkpointScoreState,
     isLoading: checkpointsLoading,
     handleAnswer: handleCheckpointAnswer,
     handleSkip: handleCheckpointSkip,
     loadCheckpoints: loadAICheckpoints,
-    resetCheckpoints
   } = useVideoCheckpoints(
     currentTime,
     isVideoPlaying,
@@ -130,7 +125,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (user && pendingDestination && view === 'login') {
       setView(pendingDestination);
-      setPendingDestination(null);
+      setPendingDestination(undefined);
     }
   }, [user, pendingDestination, view]);
 
@@ -314,7 +309,7 @@ const AppContent: React.FC = () => {
     }
   }, [transcript, videoDuration, checkpoints.length, checkpointsLoading, loadAICheckpoints]);
 
-  const handleQuizComplete = async (score: number, totalPoints: number) => {
+  const handleQuizComplete = async (score: number, _totalPoints: number) => {
     // 1. Update local state
     setStudent(prev => {
       const newXP = prev.xp + score;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { gamificationService, GamificationData, SessionStats, Achievement, Mission } from '../services/gamificationService';
+import { gamificationService, GamificationData } from '../services/gamificationService';
 
 interface GamificationPanelProps {
     refreshTrigger?: number; // Increment to force refresh
@@ -8,7 +8,7 @@ interface GamificationPanelProps {
 const GamificationPanel: React.FC<GamificationPanelProps> = ({ refreshTrigger = 0 }) => {
     const [data, setData] = useState<GamificationData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [_error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadData = async () => {

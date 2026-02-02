@@ -14,7 +14,7 @@ const ChallengeOverlay: React.FC<ChallengeOverlayProps> = ({
   challenge,
   onSolve,
   studentLevel,
-  studentId,
+  studentId: _studentId,
   sessionId
 }) => {
   const [userCode, setUserCode] = useState('');
